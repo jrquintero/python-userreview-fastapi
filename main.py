@@ -1,10 +1,13 @@
 from fastapi import FastAPI
+from fastapi import HTTPException
+
 from database import User
 from database import Movie
 from database import UserReview
 from database import database as connection
 
-from schemas import UserBaseModel
+from schemas import UserRequestModel
+from schemas import UserResponseModel
 
 app = FastAPI(title='Poyecto para reseñar peliculas',
             descripcion='En este proyecto seremos capacer de desplegar peliculas',
@@ -16,7 +19,7 @@ def startup():
         connection.connect()
     
     connection.create_tables([User, Movie, UserReview])
-    print('Connecting...')
+    # print('Connecting...')
 
 @app.on_event('shutdown')
 def shutdown():
@@ -30,14 +33,25 @@ async def index():
     return 'Hola mundo, desde un servidor en FastAPI'
 
 
-@app.post('/users')
-async def create_user(user: UserBaseModel):
+@app.post('/users', response_model=UserResponseModel)
+async def create_user(user: UserRequestModel):
+
+    if User.select().where(User.username == user.username).exists():
+        return HTTPException(409, 'El usuario ya se encuentra registrado')
+
+    hash_password = User.create_password(user.password)
+
     user = User.create(
         username=user.username,
-        password=user.password
+        password=hash_password
     )
 
-    return user.id
+    return UserResponseModel(id=user.id, username=user.username)
+
+    # return {
+    #     'id': user.id,
+    #     'username': user.username
+    # }
 
 
 @app.get('/about')
