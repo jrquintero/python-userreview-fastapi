@@ -19,6 +19,14 @@ class PeeweeGetterDict(GetterDict):
         
         return res
 
+class ResponseModel(BaseModel):
+    class Config:
+        orm_mode = True
+        getter_dict = PeeweeGetterDict
+
+
+# ------------- User --------------
+
 class UserRequestModel(BaseModel):
     username: str
     password: str
@@ -30,10 +38,39 @@ class UserRequestModel(BaseModel):
         
         return usernanme
 
-class UserResponseModel(BaseModel):
+class UserResponseModel(ResponseModel):
     id: int
     username: str
 
-    class Config:
-        orm_mode = True
-        getter_dict = PeeweeGetterDict
+
+# ------------- Review --------------
+
+class ReviewRequestModel(BaseModel):
+    user_id: int
+    movie_id: int
+    review: str
+    score: int
+
+    @validator('score')
+    def score_validator(cls, score):
+
+        if score < 1 or score > 5:
+            raise ValueError('El rango para el score es de 1 a 5')
+        
+        return score
+
+class ReviewResponseModel(ResponseModel):
+    id: int
+    movie_id: int
+    review: str
+    score: int
+
+
+# ------------- Movie --------------
+
+class MovieRequestModel(BaseModel):
+    title: str
+
+class MovieResponseModel(ResponseModel):
+    id: int
+    title: str
