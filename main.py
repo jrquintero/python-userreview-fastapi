@@ -86,8 +86,9 @@ async def create_review(user_review: ReviewRequestModel):
 
 
 @app.get('/reviews', response_model=List[ReviewResponseModel])
-async def get_reviews():
-    reviews = UserReview.select() # Select * from user_reviews
+async def get_reviews(page: int = 1, limit: int = 10):
+    reviews = UserReview.select().paginate(page, limit) # Select * from user_reviews
+
     return [ user_review for user_review in reviews]
 
 
@@ -112,6 +113,18 @@ async def update_review(review_id: int, review_request: ReviewRequestPutModel):
     user_review.score = review_request.score
 
     user_review.save()
+
+    return user_review
+
+
+@app.delete('/reviews/{review_id}', response_model=ReviewResponseModel)
+async def delete_review(review_id: int):
+    user_review = UserReview.select().where(UserReview.id == review_id).first()
+
+    if user_review is None:
+        raise HTTPException(status_code=404, detail='Review no encontrada')
+    
+    user_review.delete_instance()
 
     return user_review
 
