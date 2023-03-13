@@ -43,29 +43,6 @@ class UserResponseModel(ResponseModel):
     username: str
 
 
-# ------------- Review --------------
-
-class ReviewRequestModel(BaseModel):
-    user_id: int
-    movie_id: int
-    review: str
-    score: int
-
-    @validator('score')
-    def score_validator(cls, score):
-
-        if score < 1 or score > 5:
-            raise ValueError('El rango para el score es de 1 a 5')
-        
-        return score
-
-class ReviewResponseModel(ResponseModel):
-    id: int
-    movie_id: int
-    review: str
-    score: int
-
-
 # ------------- Movie --------------
 
 class MovieRequestModel(BaseModel):
@@ -74,3 +51,34 @@ class MovieRequestModel(BaseModel):
 class MovieResponseModel(ResponseModel):
     id: int
     title: str
+
+
+# ------------- Review --------------
+
+class ReviewValidator():
+    @validator('score')
+    def score_validator(cls, score):
+
+        if score < 1 or score > 5:
+            raise ValueError('El rango para el score es de 1 a 5')
+        
+        return score
+
+
+class ReviewRequestModel(BaseModel, ReviewValidator):
+    user_id: int
+    movie_id: int
+    review: str
+    score: int
+
+
+class ReviewResponseModel(ResponseModel):
+    id: int
+    movie_id: int
+    review: str
+    score: int
+
+
+class ReviewRequestPutModel(BaseModel, ReviewValidator):
+    review: str
+    score: int
